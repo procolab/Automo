@@ -1,0 +1,3 @@
+hostname,domain,ipv4,ipv6
+pa-fw01,company.com,10.50.10.1,2001:db8:4::1
+pa-fw02,company.com,10.50.10.2,2001:db8:4::2
