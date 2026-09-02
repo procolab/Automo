@@ -1,1 +1,11 @@
-
+hostname,domain
+Cisco,cisco.com
+PaloAlto,paloaltonetworks.com
+Fortinet,fortinet.com
+Juniper,juniper.net
+Arista,arista.com
+F5,f5.com
+CheckPoint,checkpoint.com
+Ubiquiti,ui.com
+MikroTik,mikrotik.com
+Aruba,arubanetworks.com
