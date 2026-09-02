@@ -1,0 +1,4 @@
+timestamp,hostname,ip,http,code,description
+2026-09-02 10:00:00,fw01,10.10.10.1,GET,200,Success
+2026-09-02 10:01:00,fw02,10.10.10.2,GET,401,Unauthorized
+2026-09-02 10:02:00,fw03,10.10.10.3,POST,500,Server Error
