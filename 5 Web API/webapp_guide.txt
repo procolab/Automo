@@ -1,0 +1,191 @@
+%%bash
+
+1. GET All Students
+curl -X GET http://127.0.0.1:5000/students
+or
+curl http://127.0.0.1:5000/students
+Response:
+[
+  {
+    "Age": 30.0,
+    "Contact": "+91 1234567890",
+    "ID": 101,
+    "Name": "Himanshu"
+  },
+  {
+    "Age": 28.0,
+    "Contact": "+91 9876543210",
+    "ID": 102,
+    "Name": "Rahul"
+  },
+  {
+    "Age": 32.0,
+    "Contact": "+91 9876123450",
+    "ID": 103,
+    "Name": "Amit"
+  }
+]
+
+2. GET STUDENT BY ID
+curl -X GET http://127.0.0.1:5000/students/101
+Response:
+{
+  "Age": 30.0,
+  "Contact": "+91 1234567890",
+  "ID": 101,
+  "Name": "Himanshu"
+}
+
+3. GET STUDENT NOT FOUND | 404 Not Found
+curl -X GET http://127.0.0.1:5000/students/999
+Response:
+{
+  "message": "Student not found"
+}
+
+4. POST CREATE NEW STUDENT | 201 Created
+curl -X POST http://127.0.0.1:5000/students \
+-H "Content-Type: application/json" \
+-d '{
+    "ID":104,
+    "Name":"Sneha",
+    "Age":27.0,
+    "Contact":"+91 9876540000"
+}'
+
+Response:
+{
+  "message": "Student added successfully"
+}
+
+5. VERIFY POST
+curl -X GET http://127.0.0.1:5000/students/104
+Response:
+{
+  "Age": 27.0,
+  "Contact": "+91 9876540000",
+  "ID": 104,
+  "Name": "Sneha"
+}
+
+6. POST DUPLICATE STUDENT | 400 Bad Request
+curl -X POST http://127.0.0.1:5000/students \
+-H "Content-Type: application/json" \
+-d '{
+    "ID":104,
+    "Name":"Sneha",
+    "Age":27.0,
+    "Contact":"+91 9876540000"
+}'
+
+Response:
+{
+  "message": "Student already exists"
+}
+
+7. PUT UPDATE ENTIRE RECORD
+curl -X PUT http://127.0.0.1:5000/students/101 \
+-H "Content-Type: application/json" \
+-d '{
+    "Name":"Himanshu Chauhan",
+    "Age":31.5,
+    "Contact":"+91 9999999999"
+}'
+
+Response:
+{
+  "message": "Student updated successfully"
+}
+
+8. VERIFY PUT
+curl -X GET http://127.0.0.1:5000/students/101
+Response:
+{
+  "Age": 31.5,
+  "Contact": "+91 9999999999",
+  "ID": 101,
+  "Name": "Himanshu Chauhan"
+}
+
+9. PATCH UPDATE ONLY AGE
+curl -X PATCH http://127.0.0.1:5000/students/101 \
+-H "Content-Type: application/json" \
+-d '{
+    "Age":35.0
+}'
+
+Response:
+{
+  "message": "Student partially updated"
+}
+
+10. VERIFY PATCH
+curl -X GET http://127.0.0.1:5000/students/101
+Response:
+{
+  "Age": 35.0,
+  "Contact": "+91 9999999999",
+  "ID": 101,
+  "Name": "Himanshu Chauhan"
+}
+
+11. PATCH UPDATE CONTACT ONLY
+curl -X PATCH http://127.0.0.1:5000/students/101 \
+-H "Content-Type: application/json" \
+-d '{
+  "Contact":"+91 8888888888"
+}'
+
+Response:
+{
+  "message": "Student partially updated"
+}
+
+12. PATCH MULTIPLE FIELDS
+curl -X PATCH http://127.0.0.1:5000/students/101 \
+-H "Content-Type: application/json" \
+-d '{
+  "Name":"Himanshu Kumar",
+  "Age":40.0
+}'
+
+Response:
+{
+  "message": "Student partially updated"
+}
+
+13. DELETE STUDENT
+curl -X DELETE http://127.0.0.1:5000/students/101
+Response:
+{
+  "message": "Student deleted successfully"
+}
+
+14. VERIFY DELETE | 404 Not Found
+curl -X GET http://127.0.0.1:5000/students/101
+Response:
+{
+  "message": "Student not found"
+}
+
+15. DELETE NON-EXISTING STUDENT | 404 Not Found
+curl -X DELETE http://127.0.0.1:5000/students/999
+Response:
+{
+  "message": "Student not found"
+}
+
+16. All API
+GET     /students
+GET     /students/101
+POST    /students
+PUT     /students/101
+PATCH   /students/101
+DELETE  /students/101
+
+17. Windows CMD Version
+GET : curl http://127.0.0.1:5000/students
+POST : curl -X POST http://127.0.0.1:5000/students -H "Content-Type: application/json" -d "{\"ID\":104,\"Name\":\"Sneha\",\"Age\":27,\"Contact\":\"+91 9876540000\"}"
+PUT : curl -X PUT http://127.0.0.1:5000/students/101 -H "Content-Type: application/json" -d "{\"Name\":\"Himanshu Chauhan\",\"Age\":31,\"Contact\":\"+91 9999999999\"}"
+PATCH : curl -X PATCH http://127.0.0.1:5000/students/101 -H "Content-Type: application/json" -d "{\"Age\":35}"
+DELETE : curl -X DELETE http://127.0.0.1:5000/students/101
