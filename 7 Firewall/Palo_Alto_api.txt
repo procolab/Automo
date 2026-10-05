@@ -1,0 +1,460 @@
+Access the PAN-OS REST API
+The PAN-OS REST API URL format includes a base path and the URI for the endpoint.
+curl -X GET "https://<IP address or FQDN>/restapi/<PAN-OS version>/<resource URI>"
+
+You can view the full list of resources in the REST API Reference on the firewall or Panorama
+at https://<IP_address>/restapi-doc
+
+### Authentication
+API Key
+curl -X GET \
+"https://PA-FW/restapi/v11.0/Policies/SecurityRules" \
+-H "X-PAN-KEY: API_KEY"
+
+--
+
+1. System Information
+Commonly used for inventory and health checks.
+### System Info
+
+GET /api/?type=op&cmd=<show><system><info></info></system></show>
+
+### Sample Output
+
+{
+  "hostname": "PA-DC-FW01",
+  "model": "PA-5220",
+  "serial": "123456789",
+  "sw-version": "11.1.2"
+}
+
+2. Security Policy Rules
+Security rules are among the primary REST API resources for policy management.
+### List Security Policies
+GET /restapi/v11.0/Policies/SecurityRules
+
+### Query Example
+curl -X GET \
+"https://PA-FW/restapi/v11.0/Policies/SecurityRules?location=vsys&vsys=vsys1" \
+-H "X-PAN-KEY: API_KEY"
+
+### Sample JSON
+{
+  "@name": "Allow-Web",
+  "action": "allow",
+  "source": {
+    "member": ["10.10.10.0/24"]
+  },
+  "destination": {
+    "member": ["172.16.1.10"]
+  }
+}
+
+3. Create Security Rule
+
+POST /Policies/SecurityRules
+
+{
+  "entry":[
+    {
+      "@name":"Allow-Web",
+      "action":"allow",
+      "application":{
+        "member":["ssl","web-browsing"]
+      },
+      "service":{
+        "member":["application-default"]
+      }
+    }
+  ]
+}
+
+4. NAT Policies
+NAT rule APIs are one of the standard policy resources exposed through the REST API.
+### Get NAT Rules
+GET /restapi/v11.0/Policies/NATRules
+
+### Sample JSON
+{
+  "@name":"NAT-Internet",
+  "to-interface":"ethernet1/1",
+  "source-translation":{
+    "dynamic-ip-and-port":{}
+  }
+}
+
+5. Address Objects
+Address objects are one of the most frequently managed object types.
+### List Address Objects
+GET /restapi/v11.0/Objects/Addresses
+
+### Sample JSON
+{
+  "@name":"WebServer01",
+  "ip-netmask":"10.10.10.10"
+}
+
+6. Address Groups
+
+GET /restapi/v11.0/Objects/AddressGroups
+
+### Sample JSON
+{
+  "@name":"DMZ-Servers",
+  "static":{
+    "member":[
+      "WebServer01",
+      "AppServer01"
+    ]
+  }
+}
+
+7. Service Objects
+### Get Services
+GET /restapi/v11.0/Objects/Services
+
+### Sample JSON
+{
+  "@name":"TCP-8443",
+  "protocol":{
+    "tcp":{
+      "port":"8443"
+    }
+  }
+}
+
+8. Service Groups
+
+GET /restapi/v11.0/Objects/ServiceGroups
+
+{
+  "@name":"Web-Ports",
+  "members":[
+    "service-http",
+    "service-https"
+  ]
+}
+
+9. Tags
+Tags are commonly used for automation and rule organization.
+
+GET /restapi/v11.0/Objects/Tags
+
+{
+  "@name":"Production",
+  "color":"color1"
+}
+
+10. Security Zones
+Network resources such as zones are exposed through REST API endpoints.
+
+GET /restapi/v11.0/Network/Zones
+
+### Sample JSON
+{
+  "@name":"Trust",
+  "network":{
+    "layer3":[
+      "ethernet1/2"
+    ]
+  }
+}
+
+11. Virtual Routers
+
+GET /restapi/v11.0/Network/VirtualRouters
+
+### Sample JSON
+{
+  "@name":"default",
+  "interface":[
+    "ethernet1/1",
+    "ethernet1/2"
+  ]
+}
+
+12. Interfaces
+
+GET /restapi/v11.0/Network/EthernetInterfaces
+
+{
+  "@name":"ethernet1/1",
+  "ip":{
+    "entry":[
+      {
+        "@name":"10.0.0.1/24"
+      }
+    ]
+  }
+}
+
+13. Commit Configuration
+After creating/updating objects or policies, commit changes:
+
+POST /api/?type=commit&cmd=<commit></commit>
+
+Example:
+curl -k \
+"https://PA-FW/api/?type=commit&cmd=<commit></commit>&key=API_KEY"
+
+14. Operational Commands (Most Used)
+### System Info: show system info
+### Active Sessions: show session info
+### Routing Table: show routing route
+### HA State: show high-availability state
+### VPN Status: show vpn flow
+These are typically executed through the PAN-OS XML Operational API.
+
+--
+
+Palo Alto Security Policy API Operations (Create, Update, Delete, Priority Change)
+Palo Alto uses the SecurityRules REST API endpoint for firewall policies. Policies can be managed on:
+
+1. Firewall (VSYS)
+2. Panorama Device Group (Pre/Post Rules)
+
+Authentication is typically done using the X-PAN-KEY header.
+
+1. Create Security Policy
+### cURL
+curl -k -X POST \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules?location=vsys&vsys=vsys1&name=Allow-Web" \
+-H "X-PAN-KEY: API_KEY" \
+-H "Content-Type: application/json" \
+-d '
+{
+  "entry": [
+    {
+      "@name": "Allow-Web",
+      "description": "Allow Web Traffic",
+      "from": {
+        "member": ["Trust"]
+      },
+      "to": {
+        "member": ["Untrust"]
+      },
+      "source": {
+        "member": ["10.10.10.0/24"]
+      },
+      "destination": {
+        "member": ["any"]
+      },
+      "application": {
+        "member": ["web-browsing","ssl"]
+      },
+      "service": {
+        "member": ["application-default"]
+      },
+      "action": "allow"
+    }
+  ]
+}'
+
+### Python
+import requests
+
+fw = "10.10.10.1"
+api_key = "YOUR_KEY"
+
+url = (
+    f"https://{fw}/restapi/v11.1/"
+    "Policies/SecurityRules"
+    "?location=vsys"
+    "&vsys=vsys1"
+    "&name=Allow-Web"
+)
+
+headers = {
+    "X-PAN-KEY": api_key
+}
+
+payload = {
+    "entry": [{
+        "@name": "Allow-Web",
+        "action": "allow"
+    }]
+}
+
+r = requests.post(
+    url,
+    headers=headers,
+    json=payload,
+    verify=False
+)
+
+print(r.json())
+
+--
+
+2. Get Existing Policy
+### cURL
+curl -k -X GET \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules?location=vsys&vsys=vsys1" \
+-H "X-PAN-KEY: API_KEY"
+
+### Get Specific Rule
+curl -k -X GET \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules?location=vsys&vsys=vsys1&name=Allow-Web" \
+-H "X-PAN-KEY: API_KEY"
+
+3. Update Security Policy
+Modify existing rule attributes.
+
+### cURL
+curl -k -X PUT \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules?location=vsys&vsys=vsys1&name=Allow-Web" \
+-H "X-PAN-KEY: API_KEY" \
+-H "Content-Type: application/json" \
+-d '
+{
+  "entry": [
+    {
+      "@name": "Allow-Web",
+      "description": "Updated through API",
+      "action": "allow"
+    }
+  ]
+}'
+
+### Change Action Allow → Deny
+{
+  "entry": [
+    {
+      "@name": "Allow-Web",
+      "action": "deny"
+    }
+  ]
+}
+
+### Python
+requests.put(
+    url,
+    headers=headers,
+    json={
+        "entry":[{
+            "@name":"Allow-Web",
+            "description":"Updated"
+        }]
+    },
+    verify=False
+)
+
+--
+
+4. Enable / Disable Policy
+### Disable
+curl -k -X PUT \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules?location=vsys&vsys=vsys1&name=Allow-Web" \
+-H "X-PAN-KEY: API_KEY" \
+-H "Content-Type: application/json" \
+-d '
+{
+  "entry":[
+    {
+      "@name":"Allow-Web",
+      "disabled":"yes"
+    }
+  ]
+}'
+
+### Enable
+{
+  "entry":[
+    {
+      "@name":"Allow-Web",
+      "disabled":"no"
+    }
+  ]
+}
+
+5. Delete Security Policy
+### cURL
+curl -k -X DELETE \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules?location=vsys&vsys=vsys1&name=Allow-Web" \
+-H "X-PAN-KEY: API_KEY"
+
+### Python
+requests.delete(
+    url,
+    headers=headers,
+    verify=False
+)
+
+6. Change Priority (Move Rule)
+Palo Alto policy order is top-down.
+
+### Move Before Another Rule
+Move:
+Allow-Web
+Before
+Block-All
+
+curl -k -X POST \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules\
+?location=vsys\
+&vsys=vsys1\
+&name=Allow-Web\
+&action=move\
+&where=before\
+&dst=Block-All" \
+-H "X-PAN-KEY: API_KEY"
+
+### Move After Another Rule
+
+curl -k -X POST \
+"https://PA-FW/restapi/v11.1/Policies/SecurityRules\
+?location=vsys\
+&vsys=vsys1\
+&name=Allow-Web\
+&action=move\
+&where=after\
+&dst=Allow-DNS" \
+-H "X-PAN-KEY: API_KEY"
+
+### Python
+move_url = (
+    f"https://{fw}/restapi/v11.1/"
+    "Policies/SecurityRules"
+    "?location=vsys"
+    "&vsys=vsys1"
+    "&name=Allow-Web"
+    "&action=move"
+    "&where=before"
+    "&dst=Block-All"
+)
+
+requests.post(
+    move_url,
+    headers=headers,
+    verify=False
+)
+
+--
+
+Panorama Device Group Example
+### Create Rule
+POST /restapi/v11.1/Policies/SecurityPreRules
+?location=device-group
+&device-group=PROD
+&name=Allow-Web
+
+### Update Rule
+PUT /restapi/v11.1/Policies/SecurityPreRules
+?location=device-group
+&device-group=PROD
+&name=Allow-Web
+
+### Delete Rule
+DELETE /restapi/v11.1/Policies/SecurityPreRules
+?location=device-group
+&device-group=PROD
+&name=Allow-Web
+
+### Move Rule
+POST /restapi/v11.1/Policies/SecurityPreRules
+?location=device-group
+&device-group=PROD
+&name=Allow-Web
+&action=move
+&where=before
+&dst=Block-All
