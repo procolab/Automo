@@ -1,0 +1,536 @@
+FortiGate monitoring and automation, these are the most commonly used REST API endpoints along with example JSON responses.
+Authentication (most common):
+curl -k \
+-H "Authorization: Bearer TOKEN" \
+https://FORTIGATE/api/v2/monitor/system/status
+FortiGate primarily uses token-based authentication with Authorization: Bearer <API_TOKEN>.
+
+1. System Status
+This endpoint returns hostname, model, serial number, firmware version, and build information.
+### API
+GET /api/v2/monitor/system/status
+
+### cURL
+curl -k \
+-H "Authorization: Bearer TOKEN" \
+https://FGT/api/v2/monitor/system/status
+
+### Sample JSON
+{
+  "http_method": "GET",
+  "results": {
+    "hostname": "Office-FGT",
+    "model": "FGT100F",
+    "model_name": "FortiGate",
+    "serial": "FGTXXXXXXXXXXXX",
+    "version": "v7.4.8",
+    "build": 2795
+  },
+  "status": "success"
+}
+
+2. CPU / Memory Resource Usage
+Used for live CPU, memory, disk, and NPU resource monitoring.
+### API
+GET /api/v2/monitor/system/resource/usage
+
+### Sample JSON
+{
+  "results": {
+    "cpu": [
+      {
+        "current": 26
+      }
+    ],
+    "memory": [
+      {
+        "current": 64
+      }
+    ]
+  },
+  "status": "success"
+}
+
+3. HA Status
+Useful for checking HA cluster health.
+### API
+GET /api/v2/monitor/system/ha-status
+
+### Sample JSON
+{
+  "results": {
+    "group_name": "FGT-HA",
+    "mode": "a-p",
+    "role": "primary",
+    "cluster_uptime": 123456,
+    "members": [
+      {
+        "hostname": "FGT1",
+        "role": "primary"
+      },
+      {
+        "hostname": "FGT2",
+        "role": "secondary"
+      }
+    ]
+  }
+}
+
+4. Interface Status
+Used for WAN/LAN monitoring.
+### API
+GET /api/v2/monitor/system/interface
+
+### Sample JSON
+{
+  "results": [
+    {
+      "name": "port1",
+      "status": "up",
+      "ip": "192.168.1.1",
+      "rx_packets": 125050,
+      "tx_packets": 98750
+    },
+    {
+      "name": "port2",
+      "status": "down"
+    }
+  ]
+}
+
+5. Active Sessions
+Very common for NOC dashboards.
+### API
+GET /api/v2/monitor/firewall/session/select
+
+### Sample JSON
+{
+  "results": {
+    "session_count": 154321
+  }
+}
+
+6. Routing Table
+Used to verify default routes and next hops.
+### API
+GET /api/v2/monitor/router/ipv4
+
+### Sample JSON
+{
+  "results": [
+    {
+      "ip_mask": "0.0.0.0/0",
+      "gateway": "10.10.10.1",
+      "interface": "wan1"
+    }
+  ]
+}
+
+7. Firewall Policy Statistics
+Provides policy hit counts and traffic statistics. Fortinet documentation shows policy/traffic statistics including bytes, packets, sessions, and hit counts.
+### API
+GET /api/v2/monitor/firewall/policy
+
+### Sample JSON
+{
+  "results": [
+    {
+      "policyid": 10,
+      "hit_count": 25001,
+      "bytes": 987654321,
+      "packets": 1254678
+    }
+  ]
+}
+
+8. IPsec VPN Status
+Used for tunnel monitoring.
+### API
+GET /api/v2/monitor/vpn/ipsec
+
+### Sample JSON
+{
+  "results": [
+    {
+      "name": "HQ-VPN",
+      "status": "up",
+      "incoming_bytes": 12345678,
+      "outgoing_bytes": 9876543
+    }
+  ]
+}
+
+9. SSL VPN Status
+Useful for remote-user monitoring.
+### API
+GET /api/v2/monitor/vpn/ssl
+
+### Sample JSON
+{
+  "results": {
+    "active_users": 56,
+    "tunnels": 60
+  }
+}
+
+10. FortiGate Address Objects (CMDB)
+This is one of the most frequently used configuration APIs for automation.
+### API
+GET /api/v2/cmdb/firewall/address
+
+### Sample JSON
+{
+  "results": [
+    {
+      "name": "WEB_SERVER",
+      "subnet": "192.168.10.10 255.255.255.255",
+      "type": "ipmask"
+    }
+  ]
+}
+
+11. Firewall Policies (CMDB)
+Common for policy backup and audits.
+### API
+GET /api/v2/cmdb/firewall/policy
+
+Sample JSON
+{
+  "results": [
+    {
+      "policyid": 100,
+      "srcintf": [
+        {
+          "name": "port1"
+        }
+      ],
+      "dstintf": [
+        {
+          "name": "port2"
+        }
+      ],
+      "action": "accept"
+    }
+  ]
+}
+
+12. System Performance Dashboard APIs
+### Real-time dashboard metrics
+/api/v2/monitor/system/status
+/api/v2/monitor/system/resource/usage
+/api/v2/monitor/system/interface
+/api/v2/monitor/system/ha-status
+/api/v2/monitor/firewall/session/select
+/api/v2/monitor/vpn/ipsec
+
+--
+
+1. Configuration Endpoints (/api/v2/cmdb/)
+These endpoints map directly to FortiOS config commands. They accept GET to view configurations, POST to create objects, PUT to update, and DELETE to remove them.
+
+1.1 Firewall Policies: /api/v2/cmdb/firewall/policy/
+(Used to read, create, or update firewall rules)
+1.2 Firewall Addresses: /api/v2/cmdb/firewall/address/
+(Used to manage individual IP/FQDN network objects)
+1.3 Address Groups: /api/v2/cmdb/firewall/addrgrp/
+(Used to bundle address objects for policy assignment)
+1.4 Services (Ports): /api/v2/cmdb/firewall/service/custom/
+1.5 Virtual IPs (NAT): /api/v2/cmdb/firewall/vip/
+1.6 Static Routing: /api/v2/cmdb/router/static/
+1.7 System Global Settings: /api/v2/cmdb/system/global/
+1.8 Network Interfaces: /api/v2/cmdb/system/interface/
+
+2. Monitoring & State Endpoints (/api/v2/monitor/)
+These endpoints are used to gather data on the current operational state of the firewall. They are almost exclusively accessed via GET requests.
+
+2.1 System Resource Status: /api/v2/monitor/system/status/
+(Returns CPU, memory, uptime, and firmware version details)
+2.2 Interface Statistics: /api/v2/monitor/system/interface/
+(Monitors live bandwidth traffic and status per port)
+2.3 Firewall Sessions: /api/v2/monitor/firewall/session/
+(Fetches the active stateful session table)
+2.4 DHCP Leases: /api/v2/monitor/system/dhcp/
+2.5 IPsec VPN Status: /api/v2/monitor/vpn/ipsec/
+(Tracks tunnel status, up/down history, and bandwidth)
+2.6 SSL-VPN Active Users: /api/v2/monitor/vpn/ssl/
+
+Tips for Using the API
+• Authentication: All requests must include an access token generated from a REST API Admin account, passed inside the headers as Authorization: Bearer <token>.
+• VDOM Context: If Virtual Domains (VDOMs) are enabled, you must append ?vdom=<vdom_name> to your endpoint URI to ensure you are modifying or reading the correct domain.
+• GUI API Preview: If you are running FortiOS 7.0 or newer, you can build a configuration change manually in the Web GUI, click the API Preview button, and copy the exact JSON payload and endpoint required to recreate that step in code.
+
+--
+
+For FortiGate Firewall Policy Management, the CMDB API endpoint is:
+
+/api/v2/cmdb/firewall/policy
+
+
+Operations:
+
+Create Policy → POST
+View Policy → GET
+Update Policy → PUT
+Delete Policy → DELETE
+Move/Reorder Policy → ACTION=move
+
+FortiGate supports CRUD operations through the CMDB REST API.
+
+1. Create Policy
+cURL
+curl -k -X POST \
+-H "Authorization: Bearer TOKEN" \
+-H "Content-Type: application/json" \
+https://FGT/api/v2/cmdb/firewall/policy \
+-d '
+{
+  "name": "Allow-Web",
+  "srcintf": [{"name":"port1"}],
+  "dstintf": [{"name":"port2"}],
+  "srcaddr": [{"name":"all"}],
+  "dstaddr": [{"name":"all"}],
+  "service": [{"name":"HTTP"},{"name":"HTTPS"}],
+  "schedule":"always",
+  "action":"accept",
+  "nat":"enable",
+  "status":"enable"
+}'
+
+Python
+import requests
+
+url = "https://FGT/api/v2/cmdb/firewall/policy"
+
+headers = {
+    "Authorization": "Bearer TOKEN",
+    "Content-Type": "application/json"
+}
+
+payload = {
+    "name": "Allow-Web",
+    "srcintf": [{"name":"port1"}],
+    "dstintf": [{"name":"port2"}],
+    "srcaddr": [{"name":"all"}],
+    "dstaddr": [{"name":"all"}],
+    "service": [{"name":"HTTP"}],
+    "schedule":"always",
+    "action":"accept",
+    "nat":"enable"
+}
+
+r = requests.post(
+    url,
+    headers=headers,
+    json=payload,
+    verify=False
+)
+
+print(r.json())
+
+2. Get All Policies
+cURL
+curl -k \
+-H "Authorization: Bearer TOKEN" \
+https://FGT/api/v2/cmdb/firewall/policy
+
+Python
+r = requests.get(
+    "https://FGT/api/v2/cmdb/firewall/policy",
+    headers=headers,
+    verify=False
+)
+
+for policy in r.json()["results"]:
+    print(policy["policyid"])
+
+3. Get Specific Policy
+
+Policy ID = 100
+
+cURL
+curl -k \
+-H "Authorization: Bearer TOKEN" \
+https://FGT/api/v2/cmdb/firewall/policy/100
+
+Sample Output
+{
+  "results": {
+    "policyid": 100,
+    "name": "Allow-Web",
+    "action": "accept"
+  }
+}
+
+4. Update Policy
+
+Modify existing policy.
+
+cURL
+curl -k -X PUT \
+-H "Authorization: Bearer TOKEN" \
+-H "Content-Type: application/json" \
+https://FGT/api/v2/cmdb/firewall/policy/100 \
+-d '
+{
+  "name":"Allow-Web-Updated",
+  "comments":"Updated by API"
+}'
+
+Python
+payload = {
+    "comments": "Updated by Python API"
+}
+
+r = requests.put(
+    "https://FGT/api/v2/cmdb/firewall/policy/100",
+    headers=headers,
+    json=payload,
+    verify=False
+)
+
+print(r.json())
+
+5. Enable / Disable Policy
+Disable
+curl -k -X PUT \
+-H "Authorization: Bearer TOKEN" \
+-H "Content-Type: application/json" \
+https://FGT/api/v2/cmdb/firewall/policy/100 \
+-d '{
+  "status":"disable"
+}'
+
+Enable
+curl -k -X PUT \
+-H "Authorization: Bearer TOKEN" \
+-H "Content-Type: application/json" \
+https://FGT/api/v2/cmdb/firewall/policy/100 \
+-d '{
+  "status":"enable"
+}'
+
+6. Delete Policy
+cURL
+curl -k -X DELETE \
+-H "Authorization: Bearer TOKEN" \
+https://FGT/api/v2/cmdb/firewall/policy/100
+
+Python
+requests.delete(
+    "https://FGT/api/v2/cmdb/firewall/policy/100",
+    headers=headers,
+    verify=False
+)
+
+7. Move Policy (Priority Change)
+
+Most important during policy management.
+
+Move Policy 100 before Policy 50.
+
+cURL
+curl -k -X PUT \
+-H "Authorization: Bearer TOKEN" \
+"https://FGT/api/v2/cmdb/firewall/policy/100?action=move&before=50"
+
+
+Move Policy 100 after Policy 50.
+
+curl -k -X PUT \
+-H "Authorization: Bearer TOKEN" \
+"https://FGT/api/v2/cmdb/firewall/policy/100?action=move&after=50"
+
+Python
+url = ("https://FGT/api/v2/cmdb/firewall/policy/"
+       "100?action=move&before=50")
+
+r = requests.put(
+    url,
+    headers=headers,
+    verify=False
+)
+
+print(r.status_code)
+
+8. Clone Existing Policy
+
+Get existing policy:
+
+GET /api/v2/cmdb/firewall/policy/100
+
+
+Modify:
+
+{
+  "name":"Allow-Web-Clone"
+}
+
+
+Create via:
+
+POST /api/v2/cmdb/firewall/policy
+
+9. Bulk Policy Update
+
+Example: Disable multiple policies.
+
+policies = [100,101,102]
+
+for pid in policies:
+
+    requests.put(
+        f"https://FGT/api/v2/cmdb/firewall/policy/{pid}",
+        headers=headers,
+        json={"status":"disable"},
+        verify=False
+    )
+
+Typical Success Response
+{
+  "http_method": "POST",
+  "revision": "abcd1234",
+  "status": "success",
+  "http_status": 200
+}
+
+End-to-End Flow
+Create Policy
+      ↓
+Verify Policy
+      ↓
+Move to Correct Position
+      ↓
+Enable Policy
+      ↓
+Monitor Hit Count
+      ↓
+Modify if Needed
+      ↓
+Delete when Unused
+
+Most Useful Policy APIs
+GET    /api/v2/cmdb/firewall/policy
+GET    /api/v2/cmdb/firewall/policy/{id}
+POST   /api/v2/cmdb/firewall/policy
+PUT    /api/v2/cmdb/firewall/policy/{id}
+DELETE /api/v2/cmdb/firewall/policy/{id}
+
+PUT /api/v2/cmdb/firewall/policy/{id}?action=move&before={id}
+PUT /api/v2/cmdb/firewall/policy/{id}?action=move&after={id}
+
+
+These are the core APIs used by FortiManager integrations, automation scripts, CI/CD firewall changes, ServiceNow workflows, and custom Python policy-management tools.
+
+Quick Reference
+FortiGate (VDOM)
+GET    /api/v2/cmdb/firewall/policy?vdom=VDOM1
+POST   /api/v2/cmdb/firewall/policy?vdom=VDOM1
+PUT    /api/v2/cmdb/firewall/policy/100?vdom=VDOM1
+DELETE /api/v2/cmdb/firewall/policy/100?vdom=VDOM1
+
+PUT /api/v2/cmdb/firewall/policy/100
+    ?vdom=VDOM1
+    &action=move
+    &before=50
+
+--
